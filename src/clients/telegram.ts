@@ -3,22 +3,28 @@ import { sendMessageToBot } from "../services/sendMessage"
 import { CacheClient } from "./node-cache"
 
 // replace the value below with the Telegram token you receive from @BotFather
-const token = '<authorization-token>'
+const token = '<authorization token>'
 
-export const oldChatId = '<chatId>'
+export const chatIds = []
 
 // Create a bot that uses 'polling' to fetch new updates
 export const Bot = new TelegramBot(token, {polling: true})
 
 Bot.on('message', (msg) => {
     const chatId = msg.chat.id
-    CacheClient.set('chatId', chatId)
+    if (!chatIds.includes(chatId)) {
+        chatIds.push(chatId)
+        CacheClient.set('chatIds', chatIds)
+    }
 })
 
 // Listener (handler) for telegram's /available event
 Bot.onText(/\/available/, (msg, match) => {
     const chatId = msg.chat.id
-    CacheClient.set('chatId', chatId)
+    if (!chatIds.includes(chatId)) {
+        chatIds.push(chatId)
+        CacheClient.set('chatIds', chatIds)
+    }
 
     Bot.sendMessage(
         chatId,
@@ -40,7 +46,8 @@ Bot.onText(/\/available/, (msg, match) => {
  })
 
  // Listener (handler) for callback data from /label command
- Bot.on('callback_query', async (callbackQuery) => {
+ Bot.on('callback_query', async (callbackQuery,) => {
     const ageLimit = callbackQuery.data
-    await sendMessageToBot(Number(ageLimit))
+    const chatId = callbackQuery.message.chat.id
+    await sendMessageToBot(Number(ageLimit), [chatId])
  })

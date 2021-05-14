@@ -1,4 +1,5 @@
 import { Mutation, Query, Resolver } from "type-graphql"
+import { CacheClient } from "../clients/node-cache"
 import { getCenter } from "../services/center"
 import { sendMessageToBot } from "../services/sendMessage"
 import { Center } from "./center"
@@ -19,7 +20,8 @@ export class SendMessageResolver {
 
   @Mutation(() => Message)
   async sendMessage(): Promise<Message> {
-    await sendMessageToBot()
+    const chatIds: number[] = CacheClient.get('chatIds')
+    await sendMessageToBot(18, chatIds)
     return {
       message: "hello",
       status: "SUCCESS"
